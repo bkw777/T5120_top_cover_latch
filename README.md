@@ -26,4 +26,4 @@ The springs put constant pressure on the wings so it should not be printed on it
 ## hardware
 Common pen springs work in place of the original springs.
 
-The mounting screws are 3M x 6mm
+The mounting screws are M3 x 6mm
