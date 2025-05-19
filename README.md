@@ -2,8 +2,9 @@
 
 Printable replacement top cover latch parts for a SUN Sparc T5120 server.
 
-![](T5120_top_cover_latch.png)
-
+![](T5120_top_cover_latch.png)  
+![](T5120_top_cover_latch_relaxed.png)  
+![](T5120_top_cover_latch_compressed.png)
 
 ## compatibility
 The new parts are both compatible with the mating original parts.  
