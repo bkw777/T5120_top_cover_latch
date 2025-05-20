@@ -1,6 +1,6 @@
 # T5120_top_cover_latch
 
-Printable replacement top cover latch parts for a SUN Sparc Server T5120 & T5220
+Printable replacement top cover latch parts for SUN / Oracle SPARC Enterprise T5120 & T5220 servers
 
 ![](pics/T5120_top_cover_latch.png)  
 ![](pics/T5120_top_cover_latch_relaxed.png)  
