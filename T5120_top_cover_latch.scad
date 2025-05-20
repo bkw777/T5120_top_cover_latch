@@ -25,9 +25,11 @@ sz = 4.7;  // spring z position
 spcc = 23; // spring posts center to center
 
 
-fr = 4; // flange radius
+sid = 3.2;   // screw hole id
+shpid = 6.2; // screw head pocket id
+fr = 4;      // flange radius
 fbw = mpcc-fr-fr; // frame body outside width
-throw = 3; // latch throw distance
+throw = 3;   // latch throw distance
 
 pawlw = 8;   // pawl width
 pawld = 2;   // pawl depth
@@ -43,15 +45,16 @@ lpd = 6;   // limit pin depth
 lpy = 3;   // limit pin Y end to edge
 
 wt = 1.5; // wall thickness
-bt = bbh + wt; // body thickness
 
 swd = 5;   // spring way id
 spd = 3;   // spring post od
 spw = 29;  // spring plate width (the front face) 
  
-fc = 0.2;  // fitment clearance
+fc = FDM ? 0.25 : 0.15 ;  // fitment clearance
 e = 0.001;
 $fn=72;
+
+bt = fc + bbh + fc + wt; // body thickness
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -73,15 +76,15 @@ module site () {
 
 module frame () {
 
- sid = 3; // screw hole id
- spd = 6.2; // screw head pocket id
-
  difference() {
 
   group () {
-   hull() mirror_copy([1,0,0]) translate([mpcc/2,0,0]) cylinder(h=bt,r=fr);
-   translate([-fbw/2,-mpy,0]) cube([fbw,mpy,bt]);
 
+   // main body
+   // post to post
+   hull() mirror_copy([1,0,0]) translate([mpcc/2,0,0]) cylinder(h=bt,r=fr);
+   // bolt surround
+   translate([-fbw/2,-mpy,0]) cube([fbw,mpy,bt]);
    // fillets
    mirror_copy([1,0,0]) translate([-fbw/2+e,-fr+e,0]) difference() {
     r=2;
@@ -99,29 +102,27 @@ module frame () {
     // screw head pocket
     if (FDM) hull() {
      // FDM printing needs 45 deg overhang
-     ch = (spd-sid)/2; // chamfer height
-     *translate([0,0,mph+wt+ch/2]) cylinder(h=bt,d=spd);
-     *translate([0,0,mph+wt-ch/2]) cylinder(h=ch,d1=sid,d2=spd);
-     translate([0,0,mph+wt+ch]) cylinder(h=bt,d=spd);
-     translate([0,0,mph+wt]) cylinder(h=ch,d1=sid,d2=spd);
+     ch = (shpid-sid)/2; // chamfer height
+     translate([0,0,mph+wt+ch]) cylinder(h=bt,d=shpid);
+     translate([0,0,mph+wt]) cylinder(h=ch,d1=sid,d2=shpid);
     } else {
      // SLS printing can print it flat
-     translate([0,0,mph+wt]) cylinder(h=bt,d=spd);
+     translate([0,0,mph+wt]) cylinder(h=bt,d=shpid);
     }
     // screw hole
     cylinder(h=bt*2,d=sid);
    }
    // bolt body way
-   translate([0,0,-bt/2+bbh+fc]) cube([fc+bbw+fc,50,bt],center=true);
+   translate([0,0,-bt/2+fc+bbh+fc]) cube([fc+bbw+fc,mpy*3,bt],center=true);
    // bolt flange way
-   translate([0,0,wt/2]) cube([fc+bfw+fc,50,fc+wt+fc],center=true);
+   translate([0,0,wt/2+fc-e]) cube([fc+bfw+fc,mpy*3,fc+wt+fc+e*2],center=true);
    // limit pin slot
    translate([-lpw/2-fc,-mpy+lpy-fc,bbh]) cube([fc+lpw+fc,fc+lpd+throw+fc,wt*2]);
    
    // spring way
    mirror_copy([1,0,0]) translate([spcc/2,fr-wt,sz]) rotate([90,0,0]) cylinder(d=swd,h=mpy+fr+1);
    // spring plate way
-   translate([-spw/2-fc,-mpy-e,-e]) cube([fc+spw+fc,wt+throw,bbh+fc]);
+   translate([-spw/2-fc,-mpy-e,-e]) cube([fc+spw+fc,wt+throw+fc+e,bbh+fc+fc+e]);
 
   }
 
@@ -129,20 +130,20 @@ module frame () {
 }
 
 module bolt () {
- difference() {
+ translate([0,0,fc]) difference() {
   group() {
    // body
    translate([-bbw/2,-mpy,0]) cube([bbw,bbd,bbh]);
    // flange
    translate([-bfw/2,-mpy,0]) cube([bfw,bbd,wt]);
    // key
-   translate([-lpw/2,-mpy+lpy,bbh-1]) cube([lpw,lpd,wt+1]);
+   translate([-lpw/2,-mpy+lpy,bbh-e]) cube([lpw,lpd,wt+fc+e]);
    // top
-   translate([-swid/2+fc,-mpy,-cst+e]) cube([swid-fc-fc,btd,cst+1]);
+   translate([-swid/2+fc,-mpy,-cst-fc]) cube([swid-fc-fc,btd,cst+fc+e]);
    // spring plate
    translate([-spw/2,-mpy,0]) cube([spw,wt,bbh]);
    // spring post
-   mirror_copy([1,0,0]) translate([spcc/2,-mpy+e,sz]) rotate([-90,0,0]) cylinder(d=3,h=wt+throw+1);
+   mirror_copy([1,0,0]) translate([spcc/2,-mpy+e,sz]) rotate([-90,0,0]) cylinder(d1=spd,d2=spd-1,h=wt+throw+1);
    // pawl
    hull(){
     translate([-pawlw/2,-mpy-pawld,pawlc]) cube([pawlw,pawld+wt-e,1]);
@@ -177,7 +178,7 @@ module bolt () {
 if ($preview) {
  %site();
  frame();
- //translate([0,throw,0])
+ //translate([0,throw,0]) // move bolt to compresed position
   bolt();
 } else {
  if (PRINT=="frame") frame();
