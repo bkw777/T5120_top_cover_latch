@@ -20,6 +20,8 @@ So for example if your original frame is broken but you still have the original 
 
 ## printing
 
+The springs place a constant load on the front face wings , so you want to use ABS, ASA, or PETG, not PLA for long-term / permanent installation.  
+
 The STL files with "(FDM)" are modified slightly for FDM printing.  
 * the fitment clearance between all parts is increased  
 * the screw head pockets are conical to make 45 degree overhang to print without supports
