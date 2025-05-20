@@ -160,12 +160,12 @@ module bolt () {
    // finger pull
    hull () {
     w=bbw-wt-wt;
-    t=wt+cst+1;
-    translate([-bbw/2+wt,-mpy+wt,-cst-e]) cube([w,wt,t]);
-     translate([0,-w/2-mpy+btd-wt,-cst-e])
+    t=wt+cst+fc;
+    translate([-bbw/2+wt,-mpy+wt,-cst]) cube([w,wt,t]);
+     translate([0,-w/2-mpy+btd-wt,-fc-cst-1])
      difference() {
-      cylinder(d=w,h=t);
-      translate([-w/2-1,-w,-1]) cube([w+2,w,t+2]);
+      cylinder(d=w,h=t+2);
+      translate([-w/2-1,-w,-1]) cube([w+2,w,t+4]);
      }
    }
   }
