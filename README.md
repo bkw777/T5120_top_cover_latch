@@ -10,6 +10,8 @@ Printable replacement top cover latch parts for SUN / Oracle SPARC Enterprise T5
 ![](pics/T5120_mounting_site.jpg)  
 ![](pics/T5120_all_parts.jpg)  
 ![](pics/T5120_printed_installed.jpg)  
+![](pics/T5120_new-in-old.jpg)  
+![](pics/T5120_old-in-new.jpg)  
 ![](pics/T5120_printed_latched.jpg)  
 ![](pics/T5120_both_latched.jpg)  
 
