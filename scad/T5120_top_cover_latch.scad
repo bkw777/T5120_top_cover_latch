@@ -8,8 +8,9 @@
 //
 // screws are M3 x 6mm
 
-FDM = false; // adjust for FDM printing
 PRINT = "frame"; // "frame", "bolt"
+FDM = false;     // adjust for FDM printing
+GUSSET = true;   // add gussets to front wings to resist PLA creep from springs constant pressure
 
 // server case mounting site features
 mpcc = 41;   // mount posts center to center
@@ -124,6 +125,16 @@ module frame () {
    // spring plate way
    translate([-spw/2-fc,-mpy-e,-e]) cube([fc+spw+fc,wt+throw+fc+e,bbh+fc+fc+e]);
 
+   // gusset way
+   if (GUSSET) {
+    wl = (spw-bfw)/2+fc+e;
+     mirror_copy([1,0,0]) translate([bfw/2-e,-mpy+wt+throw+fc-e-e,-e]) linear_extrude(fc+wt+fc+e) polygon(points = [
+      [0, 0],
+      [0, wl],
+      [wl, 0]
+     ]);    
+   }
+
   }
 
  }
@@ -149,6 +160,21 @@ module bolt () {
     translate([-pawlw/2,-mpy-pawld,pawlc]) cube([pawlw,pawld+wt-e,1]);
     translate([-pawlw/2,-mpy,bbh-1]) cube([pawlw,wt-e,1]);
    }
+   
+   // gusset
+   if (GUSSET) {
+     wl = (spw-bfw)/2+e;
+     mirror_copy([1,0,0]) translate([bfw/2-e,-mpy+wt-e,0]) linear_extrude(wt) polygon(points = [
+      [0, 0],
+      [0, wl],
+      [wl, 0]
+     ]);
+     mirror_copy([1,0,0]) translate([bbw/2-e,-mpy+wt-e,wt/2]) linear_extrude(bbh-wt/2) polygon(points = [
+      [0, 0],
+      [0, 0.5],
+      [0.5, 0]
+     ]);
+   }
  
  
   }
@@ -168,6 +194,7 @@ module bolt () {
       translate([-w/2-1,-w,-1]) cube([w+2,w,t+4]);
      }
    }
+
   }
  }
 
@@ -178,7 +205,7 @@ module bolt () {
 if ($preview) {
  %site();
  frame();
- //translate([0,throw,0]) // move bolt to compresed position
+ // translate([0,throw,0]) // move bolt to compresed position
   bolt();
 } else {
  if (PRINT=="frame") frame();
