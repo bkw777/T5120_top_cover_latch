@@ -11,8 +11,17 @@
 // several of these dimensions are fixed
 // to keep the parts compatible with the original parts
 
-PRINT = "bolt"; // "frame", "bolt", "both"
-FDM = false;    // adjust for FDM printing
+PRINT = "frame"; // "frame", "bolt"
+FDM = false;    // adjust for FDM printing (not really needed even for fdm printing)
+
+// FDM:
+// * increase fitement_clearance to 0.3
+// * conical screw pocket to make 45 degree overhang to print without support
+//   (you still just use the regular screw in it)
+
+// configuration
+fitment_clearance = FDM ? 0.3 : 0.2 ;
+screw_flange_thickness = 2;
 
 // preview options
 //CUT_HEIGHT = "finger_pull";
@@ -29,22 +38,22 @@ mpy = 13.8;  // mount post Y (center to front edge)
 swid = 18;   // slot width
 slen = 15.5; // slot length
 cst = 1;     // case sheet thickness
-// slightly configurable - must clear rf shield sponges
+// slightly configurable - must still clear rf shield sponges
 fr = 4;      // flange radius
 fbw = mpcc-fr-fr; // frame body outside width
 
-// original parts reference features
+// original parts reference dimensions
+// configurable if you don't care about
+// compatibility with the original parts
 sz = 4.7;  // spring z position
 spcc = 23; // spring posts center to center
-spw = 29;  // spring plate width (the front face) 
+spw = 29;  // spring plate width (the front face)
 bfw = 21;  // bolt flange width (the top plate)
 lpw = 2.5; // limit pin width
 lpd = 6;   // limit pin depth
 lpy = 3;   // limit pin Y end to edge
 
-// configuration
-fc = FDM ? 0.3 : 0.2 ;  // fitment clearance
-
+fc = fitment_clearance;
 sid = 3+fc;  // screw hole id
 shpid = 6+fc*2; // screw head pocket id
 throw = 3;   // latch throw distance
@@ -58,10 +67,8 @@ bbd = 16;  // bolt body depth
 bbh = 8;   // bolt body height
 
 wt = 1.5;  // wall thickness
-//screw_flange_thickness = wt;
-screw_flange_thickness = 2;
 
-swd = fc+4.5+fc; // spring way id
+swd = 4.5+fc; // spring way id
 spd = 3;   // spring post od
 
 e = 0.001;
@@ -230,13 +237,13 @@ if ($preview) {
     BOLT_POSITION == "compressed" ? throw :
     BOLT_POSITION == "exploded" ? -bbd-2 :
     0;
-  cutz = 
+  cutz =
     is_undef(CUT_HEIGHT) ? bt+1 :
     CUT_HEIGHT == "finger_pull" ? -cst/2 :
     CUT_HEIGHT == "bolt_flange" ? fc+wt/2 :
     CUT_HEIGHT == "mid" ? sz :
     bt+1;
-    
+
   difference() {
     group() {
       frame();
@@ -245,7 +252,6 @@ if ($preview) {
     translate([-mpcc/2-fr-1,-mpy-throw,cutz]) cube([mpcc+fr*2+2,mpy*2,bt+cst]);
   }
 } else {
-  o = (PRINT=="both") ? 10 : 0; 
-  if (PRINT=="frame" || PRINT=="both") translate([0,o,bt]) rotate([180,0,0]) frame();
-  if (PRINT=="bolt" || PRINT=="both") translate([0,bt/2-o,mpy+pawld]) rotate([90,0,0]) bolt();
+    if (PRINT=="frame") translate([0,0,bt]) rotate([180,0,0]) frame();
+    if (PRINT=="bolt") translate([0,bt/2,mpy+pawld]) rotate([90,0,0]) bolt();
 }
