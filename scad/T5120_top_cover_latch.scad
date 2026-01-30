@@ -25,9 +25,9 @@ PREVIEW_BOLT_POSITION = "relaxed"; // [relaxed,compressed,exploded]
 flange_fillet_radius = 4;
 fr = flange_fillet_radius;
 
-// -1 = auto = fitment_clearance*2
+// -1 = auto = fitment_clearance*3
 chamfer_size = -1; // 0.1
-_cs = (chamfer_size<0) ? (fc*2) : chamfer_size ;
+_cs = (chamfer_size<0) ? (fc*3) : chamfer_size ;
 cs = (_cs>0.1) ? sqrt((_cs+fc*2)^2*2) : 0;
 echo ("_cs",_cs);
 echo ("cs",cs);
@@ -145,13 +145,18 @@ module frame () {
     translate([0,0,-bt/2+fc+bbh+fc]) cube([fc+bbw+fc,mpy*3,bt],center=true);
     // bolt flange way
     translate([0,0,wt/2+fc-e]) cube([fc+bfw+fc,mpy*3,fc+wt+fc+e*2],center=true);
-    // bolt body-flange chamfer
-    if (cs) mirror_copy([1,0,0]) translate([bbw/2,0,fc+wt]) rotate([0,45,0]) cube([cs,mpy*3,cs],center=true);
     // limit pin slot
     lpl = lpd+throw;
     translate([-lpw/2-fc,-mpy+lpy-fc,bbh]) cube([fc+lpw+fc,fc+lpl+fc,wt*2]);
-    // limit pin slot chamfer
+    //chamfers
     if (cs) {
+      // bolt body-flange chamfer
+      mirror_copy([1,0,0]) translate([bbw/2,0,fc+wt]) rotate([0,45,0]) cube([cs,mpy*3,cs],center=true);
+      // top of spring way
+      translate([0,-mpy+wt+throw-fc,wt+fc+fc-e]) rotate([0,45,90]) cube([cs,fc+spw+fc,cs],center=true);
+      // spring way mouth
+      mirror_copy([1,0,0]) translate([spcc/2,-mpy+wt+throw+fc+cs/2,sz]) rotate([90,0,0]) cylinder(d1=swd,d2=swd+cs+cs,h=cs);
+      // limit pin slot chamfer
       s = _cs+fc;
       hull() {
         translate([0,lpl/2-mpy+lpy,s/2+bbh+fc+fc]) cube([lpw,lpl,s],center=true);
@@ -172,7 +177,7 @@ module frame () {
       [0, wl],
       [wl, 0]
      ]);
-     translate([bbw/2-e,-mpy+wt+throw+fc-e,fc-e]) linear_extrude(bbh+fc+e) polygon(points = [
+     translate([bbw/2+fc/2,-mpy+wt+throw+fc-e,fc-e]) linear_extrude(bbh+fc+e) polygon(points = [
       [0, 0],
       [0, wc],
       [wc, 0]
@@ -228,15 +233,27 @@ module bolt () {
     group() {
       // chamfers
       if (cs) {
-        // body
-        mirror_copy([1,0,0]) translate([bbw/2+fc,bbd/2-mpy+wt+wc,bbh+fc]) rotate([0,45,0]) cube([cs,bbd,cs],center=true);
-        // flange
-        mirror_copy([1,0,0]) translate([bfw/2+fc,bbd/2-mpy+wt+wl-e-e,wt+fc]) rotate([0,45,0]) cube([cs,bbd,cs],center=true);
-        // face
-        mirror_copy([1,0,0]) translate([spw/2+fc,wt/2-mpy,bbh+fc]) rotate([0,45,0]) cube([cs,fc+wt+fc,cs],center=true);
-        // key
-        h = wt+fc+1;
-        translate([0,-mpy+lpy+lpd/2,0]) mirror_copy([0,1,0]) mirror_copy([1,0,0]) translate([lpw/2+fc,lpd/2+fc,h/2+bbh]) rotate([0,0,45]) cube([cs,cs,h],center=true);
+        mirror_copy([1,0,0]) {
+          // key
+          kh = wt+fc+1;
+          translate([0,-mpy+lpy+lpd/2,0]) mirror_copy([0,1,0]) translate([lpw/2+fc,lpd/2+fc,kh/2+bbh]) rotate([0,0,45]) cube([cs,cs,kh],center=true);
+          hull() {
+            // body
+            translate([bbw/2+fc,bbd/2-mpy+wt+wc,bbh+fc]) rotate([0,45,0]) cube([cs,bbd,cs],center=true);
+            // spring plate top
+            cl = (spw-bbw)/2;
+            translate([cl/2+bbw/2+wc,-mpy+wt+fc,bbh+fc]) rotate([0,90,0]) rotate([0,0,45]) cube([cs,cs,cl],center=true);
+          }
+          // flange
+          hull() {
+            translate([bfw/2+fc,bbd/2-mpy+wt+wl-e-e,wt+fc]) rotate([0,45,0]) cube([cs,bbd,cs],center=true);
+            translate([1+spw/2+e,-mpy+wt+fc+fc,wt]) rotate([0,90,0]) rotate([0,0,45]) cube([cs,cs,2],center=true);
+          }
+          // face corner
+          translate([spw/2+fc,wt/2-mpy,bbh+fc]) rotate([0,45,0]) cube([cs,fc+wt+fc,cs],center=true);
+          // spring plate end
+          translate([spw/2+fc,-mpy+wt+fc,bbh/2+wt]) rotate([0,0,45]) cube([cs,cs,bbh],center=true);
+        }
       }
 
       // hollow interior
