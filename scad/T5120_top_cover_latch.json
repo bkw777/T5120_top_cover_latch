@@ -1,8 +1,22 @@
 {
     "fileFormatVersion": "1",
     "parameterSets": {
-        "bolt": {
-            "PRINT": "bolt"
+        "jawstec": {
+            "DEBUG_BISECT_HEIGHT": "none",
+            "PREVIEW_BOLT_POSITION": "exploded",
+            "PRINT": "frame",
+            "SCREW_POCKET": "flat",
+            "chamfer_size": "-1",
+            "fc_threshold": "0.14999999999999999",
+            "fitment_clearance": "0.29999999999999999",
+            "flange_fillet_radius": "4",
+            "pawl_throw_clearance": "0.5",
+            "pawl_top_clearance": "0.5",
+            "pawl_width": "8",
+            "screw_flange_thickness": "2",
+            "spring_diameter": "4.5",
+            "throw": "3",
+            "wall_thickness": "1.5"
         }
     }
 }

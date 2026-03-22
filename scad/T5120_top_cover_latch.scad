@@ -14,13 +14,15 @@
 PRINT = "frame"; // [frame,bolt]
 SCREW_POCKET = "flat"; // [flat,cone]
 
-fitment_clearance = 0.1 ;
+fitment_clearance = 0.1; // 0.01
 fc = fitment_clearance ;
+fc_threshold = 0.15; // fc above this switches to the jawstec (shit tolerances) model
+jawstec = (fc>=fc_threshold);
 
 screw_flange_thickness = 2;
 
 DEBUG_BISECT_HEIGHT = "none"; // [none,finger pull,bolt flange,mid]
-PREVIEW_BOLT_POSITION = "relaxed"; // [relaxed,compressed,exploded]
+PREVIEW_BOLT_POSITION = "exploded"; // [relaxed,compressed,exploded]
 
 flange_fillet_radius = 4;
 fr = flange_fillet_radius;
@@ -74,6 +76,9 @@ spring_diameter = 4.5; // 0.1
 swd = spring_diameter + fc*2; // spring way id
 spd = spring_diameter - 1; // spring post od
 
+gusset_covers_gap = !jawstec;
+gusset_ext = gusset_covers_gap ? throw : 0;
+
 /* [Hidden] */
 bbw = 17;      // bolt body width
 bbd = mpy+fr;  // bolt body depth
@@ -96,7 +101,7 @@ module mirror_copy(v = [1, 0, 0]) {
 use <spring.scad>
 
 module springs () {
-  od = 4.5;        // OD
+  od = spring_diameter;        // OD
   wd = 0.5;        // wire diameter
   el = 25;         // exploded length
   rl = bbd-wt-wt;  // relaxed length
@@ -109,6 +114,17 @@ module springs () {
     el;
 
   mirror_copy([1,0,0]) translate([spcc/2,fr-wt,sz]) rotate([90,0,0]) spring(od=od,c=c,l=l,wd=wd);
+}
+
+module spring_pins () {
+  da = spd-0.5;
+  db = spd-1;
+  gap = fc; // 0, fc, 1
+  h = (mpy+fr-wt*2-throw)/2-(db/2)-gap;
+  mirror_copy([1,0,0]) translate([spcc/2,0,0]) {
+    cylinder(d1=da,d2=db,h=h);
+    translate([0,0,h]) sphere(d=db);
+  }
 }
 
 // the site on the server case where the latch mounts
@@ -167,7 +183,7 @@ module frame () {
     lpl = lpd+throw;
     translate([-lpw/2-fc,-mpy+lpy-fc,bbh]) cube([fc+lpw+fc,fc+lpl+fc,wt*2]);
     //chamfers
-    if (cs) {
+    if (cs && !jawstec) {
       // bolt body-flange chamfer
       mirror_copy([1,0,0]) translate([bbw/2,0,fc+wt]) rotate([0,45,0]) cube([cs,mpy*3,cs],center=true);
       // top of spring way
@@ -183,28 +199,40 @@ module frame () {
     }
 
     // spring way
-    mirror_copy([1,0,0]) translate([spcc/2,fr-wt,sz]) rotate([90,0,0]) cylinder(d=swd,h=mpy+fr+1);
-    // spring plate way
-    translate([-spw/2-fc,-mpy-e,-e]) cube([fc+spw+fc,wt+throw+fc+e,bbh+fc+fc+e]);
-
-    // gusset way
-    wl = (spw-bfw)/2+fc+e;
-    mirror_copy([1,0,0]) {
-     translate([bfw/2-e,-mpy+wt+throw+fc-e-e,-e]) linear_extrude(fc+wt+fc+e) polygon(points = [
-      [0, 0],
-      [0, wl],
-      [wl, 0]
-     ]);
-     translate([bbw/2+fc/2,-mpy+wt+throw+fc-e,fc-e]) linear_extrude(bbh+fc+e) polygon(points = [
-      [0, 0],
-      [0, wc],
-      [wc, 0]
-     ]);
+      // flange & gusset way
+      wl = (spw-bfw)/2+fc+e;
+      translate([-spw/2-fc,-mpy-e,-fc]) cube([fc+spw+fc,wt+throw+fc+e,bbh+fc+fc+fc]);
+      mirror_copy([1,0,0]) {
+       translate([bfw/2-e,-mpy+wt+throw+fc-e-e,-fc]) linear_extrude(fc+wt+fc+fc) polygon(points = [
+        [0, 0],
+        [0, wl+gusset_ext],
+        [wl, gusset_ext],
+        [wl, 0]
+       ]);
+    }
+    if (jawstec) {
+      // spring way
+      wh = bbh-wt+fc;
+      //hull() mirror_copy([1,0,0]) translate([spw/2-wh/2+fc,fr-wt,wh/2+wt+fc]) rotate([90,0,0]) cylinder(d=wh,h=mpy+fr-wt);
+      translate([-spw/2-fc,-mpy-e,wt+fc]) cube([fc+spw+fc,mpy+fr-wt,wh]);
+    } else {
+      mirror_copy([1,0,0]) {
+        translate([spcc/2,fr-wt,sz]) rotate([90,0,0]) cylinder(d=swd,h=mpy+fr+1);
+        translate([bbw/2+fc/2,-mpy+wt+throw+fc-e,fc-e]) linear_extrude(bbh+fc+e) polygon(points = [
+          [0, 0],
+          [0, wc],
+          [wc, 0]
+         ]);
+      }
     }
 
   }
 
  }
+
+ // spring pins
+ if (jawstec) translate([0,fr-wt+e,sz]) rotate([90,0,0]) spring_pins();
+
 }
 
 module bolt () {
@@ -222,11 +250,9 @@ module bolt () {
       translate([-swid/2+fc,-mpy,-cst-fc]) cube([swid-fc-fc,btd,cst+fc+e]);
       // spring plate
       translate([-spw/2,-mpy,0]) cube([spw,wt,bbh]);
-      // spring post
-      mirror_copy([1,0,0]) translate([spcc/2,-mpy+e,sz-zadj]) {
-        rotate([-90,0,0]) cylinder(d1=spd,d2=spd-1,h=wt+throw);
-        translate([0,wt+throw,0]) sphere(d=spd-1);
-      }
+      // spring pins
+      translate([0,-mpy+wt-e,sz-zadj]) rotate([-90,0,0]) spring_pins();
+
       // pawl
       hull(){
         translate([-pawlw/2,-mpy-pawld,pawlc]) cube([pawlw,pawld+wt-e,1]);
@@ -237,7 +263,8 @@ module bolt () {
       mirror_copy([1,0,0]) translate([0,-mpy+wt-e,0]) {
         translate([bfw/2-e,0,0]) linear_extrude(wt) polygon(points = [
           [0, 0],
-          [0, wl],
+          [0, wl+gusset_ext],
+          [wl, gusset_ext],
           [wl, 0]
         ]);
         translate([bbw/2-e,0,wt/2]) linear_extrude(bbh-wt/2) polygon(points = [
@@ -251,7 +278,7 @@ module bolt () {
 
     group() {
       // chamfers
-      if (cs) {
+      if (cs && !jawstec) {
         mirror_copy([1,0,0]) {
           // key
           kh = wt+fc+1;
@@ -265,9 +292,13 @@ module bolt () {
           }
           // flange
           hull() {
-            translate([bfw/2+fc,bbd/2-mpy+wt+wl-e-e,wt+fc]) rotate([0,45,0]) cube([cs,bbd,cs],center=true);
-            translate([1+spw/2+e,-mpy+wt+fc+fc,wt]) rotate([0,90,0]) rotate([0,0,45]) cube([cs,cs,2],center=true);
+            translate([bfw/2+fc,bbd/2-mpy+wt+wl-e-e+gusset_ext,wt+fc]) rotate([0,45,0]) cube([cs,bbd,cs],center=true);
+            translate([1+spw/2+e,-mpy+wt+fc+fc+gusset_ext,wt]) rotate([0,90,0]) rotate([0,0,45]) cube([cs,cs,2],center=true);
           }
+          translate([spw/2+fc,-mpy+gusset_ext,wt+fc]) rotate([0,45,0]) cube([cs,gusset_ext,cs],center=true);
+          _cs=cs*1.418;
+          translate([spw/2+fc+fc-e,-mpy+wt+e+e,wt+e+e]) rotate([90,0,-90]) cylinder(h=_cs/2,d1=_cs,d2=0);
+
           // face corner
           translate([spw/2+fc,wt/2-mpy,bbh+fc]) rotate([0,45,0]) cube([cs,fc+wt+fc,cs],center=true);
           // spring plate end
