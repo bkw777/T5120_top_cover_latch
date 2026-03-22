@@ -2,20 +2,7 @@
     "fileFormatVersion": "1",
     "parameterSets": {
         "bolt": {
-            "DEBUG_BISECT_HEIGHT": "none",
-            "PREVIEW_BOLT_POSITION": "relaxed",
-            "PRINT": "bolt",
-            "SCREW_POCKET": "flat",
-            "chamfer_size": "-1",
-            "fitment_clearance": "0.10000000000000001",
-            "flange_fillet_radius": "4",
-            "pawl_throw_clearance": "0.5",
-            "pawl_top_clearance": "0.5",
-            "pawl_width": "8",
-            "screw_flange_thickness": "2",
-            "spring_diameter": "4.5",
-            "throw": "3",
-            "wall_thickness": "1.5"
+            "PRINT": "bolt"
         }
     }
 }

@@ -75,9 +75,9 @@ swd = spring_diameter + fc*2; // spring way id
 spd = spring_diameter - 1; // spring post od
 
 /* [Hidden] */
-bbw = 17;  // bolt body width
-bbd = 16;  // bolt body depth
-bbh = 8;   // bolt body height
+bbw = 17;      // bolt body width
+bbd = mpy+fr;  // bolt body depth
+bbh = 8;       // bolt body height
 
 e = 0.001;
 $fn=72;
@@ -96,11 +96,11 @@ module mirror_copy(v = [1, 0, 0]) {
 use <spring.scad>
 
 module springs () {
-  od = 4.5;           // OD
-  wd = 0.5;           // wire diameter
-  el = 25;            // exploded length
-  rl = mpy+fr-wt-wt;  // relaxed length
-  cl = rl-throw;      // compressed length
+  od = 4.5;        // OD
+  wd = 0.5;        // wire diameter
+  el = 25;         // exploded length
+  rl = bbd-wt-wt;  // relaxed length
+  cl = rl-throw;   // compressed length
   c = el/2;   // coils
 
   l =
