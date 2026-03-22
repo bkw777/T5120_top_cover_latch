@@ -93,6 +93,24 @@ module mirror_copy(v = [1, 0, 0]) {
   mirror(v) children();
 }
 
+use <spring.scad>
+
+module springs () {
+  od = 4.5;           // OD
+  wd = 0.5;           // wire diameter
+  el = 25;            // exploded length
+  rl = mpy+fr-wt-wt;  // relaxed length
+  cl = rl-throw;      // compressed length
+  c = el/2;   // coils
+
+  l =
+    PREVIEW_BOLT_POSITION == "compressed" ? cl :
+    PREVIEW_BOLT_POSITION == "relaxed" ? rl :
+    el;
+
+  mirror_copy([1,0,0]) translate([spcc/2,fr-wt,sz]) rotate([90,0,0]) spring(od=od,c=c,l=l,wd=wd);
+}
+
 // the site on the server case where the latch mounts
 module site () {
   mirror_copy([1,0,0])
@@ -191,7 +209,8 @@ module frame () {
 
 module bolt () {
   wl = (spw-bfw)/2+e; // flange gusset size
-  translate([0,0,fc]) difference() {
+  zadj = fc;
+  translate([0,0,zadj]) difference() {
     group() {
       // body
       translate([-bbw/2,-mpy,0]) cube([bbw,bbd,bbh]);
@@ -204,7 +223,7 @@ module bolt () {
       // spring plate
       translate([-spw/2,-mpy,0]) cube([spw,wt,bbh]);
       // spring post
-      mirror_copy([1,0,0]) translate([spcc/2,-mpy+e,sz]) {
+      mirror_copy([1,0,0]) translate([spcc/2,-mpy+e,sz-zadj]) {
         rotate([-90,0,0]) cylinder(d1=spd,d2=spd-1,h=wt+throw);
         translate([0,wt+throw,0]) sphere(d=spd-1);
       }
@@ -291,6 +310,7 @@ if ($preview) {
     DEBUG_BISECT_HEIGHT == "mid" ? sz :
     bt+1;
 
+  %springs();
   difference() {
     group() {
       frame();
