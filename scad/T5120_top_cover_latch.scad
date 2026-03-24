@@ -5,6 +5,7 @@
 // frame and bolt both compatible with the original parts
 //
 // common pen springs work in place of the original springs
+// (4.5mm od x 20-25mm length x 0.5mm wire)
 //
 // screws are M3 x 6mm
 
@@ -93,12 +94,30 @@ wc = (spcc-bbw-swd)/2;   // wing chamfer
 
 /////////////////////////////////////////////////////////////////////////////////
 
-module mirror_copy(v = [1, 0, 0]) {
+module mirror_copy (v = [1, 0, 0]) {
   children();
   mirror(v) children();
 }
 
-use <spring.scad>
+module spring (od=10, c=25, l=50, wd=1, s=18, $fn=12) {
+    r = (od-wd)/2;    
+    ld = (l-wd)/c/360;
+    
+    translate([0,0,wd/2]) for ( a = [s:s:360*c] ) {
+        xa=r*cos(a-s);
+        ya=r*sin(a-s);
+        za=(a-s)*ld;
+
+        xb=r*cos(a);
+        yb=r*sin(a);
+        zb=a*ld;
+
+        hull() {
+          translate([xa,ya,za]) sphere(d=wd);
+          translate([xb,yb,zb]) sphere(d=wd);
+        }
+    }
+}
 
 module springs () {
   od = spring_diameter;        // OD
@@ -348,7 +367,9 @@ if ($preview) {
       translate([0,bolty,0]) bolt();
     }
     // debug bisect cut cube
-    translate([-mpcc/2-fr-1,-mpy-throw,cutz]) cube([mpcc+fr*2+2,mpy*2,bt+cst]);
+    bw=mpcc+fr*2+2;
+    bd=bbd*1.25-bolty+throw+1;
+    translate([-bw/2,-bd+fr+throw+1,cutz]) cube([bw,bd,bt+cst]);
   }
 } else {
     if (PRINT=="frame") translate([0,0,bt]) rotate([180,0,0]) frame();
