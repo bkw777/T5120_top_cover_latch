@@ -70,7 +70,7 @@ shpid = 6+fc*2; // screw head pocket id
 /* [Global] */
 throw = 3;   // latch throw distance
 pawld = throw;   // pawl depth
-pawl_top_extra_clearance = 0; // 0.01
+pawl_top_extra_clearance = 0.2; // 0.01
 pawlc = pawl_top_extra_clearance;
 pawl_width = 8;
 pawlw = pawl_width;
